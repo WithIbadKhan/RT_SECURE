@@ -10,3 +10,7 @@ torch
 flair
 openai
 azure-ai-textanalytics
+textract
+pdf2image
+PyMuPDF
+openfaker
