@@ -24,6 +24,8 @@ from presidio_helpers import (
     analyzer_engine,
 )
 
+from money_recognizer import MoneyRecognizer  # Import MoneyRecognizer
+
 st.set_page_config(
     page_title="RT SECURE",
     layout="wide",
