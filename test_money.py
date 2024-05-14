@@ -12,7 +12,7 @@ import textract
 from pdf2image import convert_from_path
 import fitz
 import re
-import uuid  # Import uuid library to generate unique keys
+import uuid  
 
 from openai_fake_data_generator import OpenAIParams
 from presidio_helpers import (
@@ -24,6 +24,10 @@ from presidio_helpers import (
     analyzer_engine,
 )
 
+# Import MoneyRecognizer
+from MoneyRecognizer import MoneyRecognizer
+
+# Set page config
 st.set_page_config(
     page_title="RT SECURE",
     layout="wide",
@@ -234,6 +238,14 @@ analyzer_load_state = st.info("Starting Presidio analyzer...")
 
 analyzer_load_state.empty()
 
+# Instantiate the MoneyRecognizer
+money_recognizer = MoneyRecognizer()
+
+# List of recognizers including the MoneyRecognizer
+recognizers = [
+    money_recognizer,  # Add the money_recognizer to the list of recognizers
+]
+
 # Read default text
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -307,7 +319,7 @@ if uploaded_files:
 
             # Before
             analyzer_load_state = st.info("Starting Presidio analyzer...")
-            analyzer = analyzer_engine(*analyzer_params)
+            analyzer = analyzer_engine(*analyzer_params, recognizers=recognizers)  # Pass the recognizers list
             analyzer_load_state.empty()
 
             st_analyze_results = analyze(
