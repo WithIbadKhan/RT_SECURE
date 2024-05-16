@@ -1,4 +1,5 @@
 from annotated_text import annotated_text
+from presidio_analyzer import Pattern, PatternRecognizer, RecognizerRegistry, AnalyzerEngine #update
 from streamlit_tags import st_tags
 import logging
 import os
@@ -320,6 +321,18 @@ if uploaded_files:
                 allow_list=st_allow_list,
                 deny_list=st_deny_list,
             )
+            #update start
+            money_pattern = Pattern(name="money_pattern", regex=r"\$\d+(\.\d{2})?|\d+(\.\d{2})?\s?(dollars|USD|usd|$|bucks)", score=0.85)
+            money_recognizer = PatternRecognizer(supported_entity="MONEY", patterns=[money_pattern])
+            
+            money_results = money_recognizer.analyze(
+            text=st_text,
+            entities=["MONEY"],
+        
+            )
+            # print(money_results)
+            results = money_results + st_analyze_results
+            #update end
 
             # After
             if st_operator not in ("highlight", "synthesize"):
@@ -331,7 +344,7 @@ if uploaded_files:
                         mask_char=st_mask_char,
                         number_of_chars=st_number_of_chars,
                         encrypt_key=st_encrypt_key,
-                        analyze_results=st_analyze_results,
+                        analyze_results=results,
                     )
                     st.text_area(
                         label="De-identified", value=st_anonymize_results.text, height=400
@@ -341,13 +354,13 @@ if uploaded_files:
                     st.subheader(f"OpenAI Generated output")
                     fake_data = create_fake_data(
                         st_text,
-                        st_analyze_results,
+                        results,
                         open_ai_params,
                     )
                     st.text_area(label="Synthetic data", value=fake_data, height=400)
             else:
                 st.subheader("Highlighted")
-                annotated_tokens = annotate(text=st_text, analyze_results=st_analyze_results)
+                annotated_tokens = annotate(text=st_text, analyze_results=results)
                 # annotated_tokens
                 annotated_text(*annotated_tokens)
 
@@ -357,9 +370,9 @@ if uploaded_files:
                 if not st_return_decision_process
                 else "Findings with decision factors"
             )
-            if st_analyze_results:
-                df = pd.DataFrame.from_records([r.to_dict() for r in st_analyze_results])
-                df["text"] = [st_text[res.start : res.end] for res in st_analyze_results]
+            if results:
+                df = pd.DataFrame.from_records([r.to_dict() for r in results])
+                df["text"] = [st_text[res.start : res.end] for res in results]
 
                 df_subset = df[["entity_type", "text", "start", "end", "score"]].rename(
                     {
@@ -371,10 +384,10 @@ if uploaded_files:
                     },
                     axis=1,
                 )
-                df_subset["Text"] = [st_text[res.start : res.end] for res in st_analyze_results]
+                df_subset["Text"] = [st_text[res.start : res.end] for res in results]
                 if st_return_decision_process:
                     analysis_explanation_df = pd.DataFrame.from_records(
-                        [r.analysis_explanation.to_dict() for r in st_analyze_results]
+                        [r.analysis_explanation.to_dict() for r in results]
                     )
                     df_subset = pd.concat([df_subset, analysis_explanation_df], axis=1)
                 st.dataframe(df_subset.reset_index(drop=True), use_container_width=True)
