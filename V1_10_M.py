@@ -322,7 +322,7 @@ if uploaded_files:
                 deny_list=st_deny_list,
             )
             #update start
-            money_pattern = Pattern(name="money_pattern", regex=r"\$\d+(\.\d{2})?|\d+(\.\d{2})?\s?(dollars|USD|usd|$|bucks)", score=0.85)
+            money_pattern = Pattern(name="money_pattern", regex=r"\$\d+|\d+\s?(dollars|USD)", score=1)
             money_recognizer = PatternRecognizer(supported_entity="MONEY", patterns=[money_pattern])
             
             money_results = money_recognizer.analyze(
@@ -410,3 +410,5 @@ components.html(
     </script>
     """
 )
+
+
